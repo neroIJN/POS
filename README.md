@@ -39,9 +39,4 @@ This repository contains a fully functional **Point of Sale (POS) system** devel
 2. **SQL Server** (local or remote instance)  
 3. **IIS** (for deployment, optional)
 
-### **Steps to Run Locally**
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/yourusername/pos-system-blazor-dotnet.git
-   cd pos-system-blazor-dotnet
