@@ -1,0 +1,392 @@
+﻿@page "/products"
+@page "/products_User/{UserID:int}"
+@using Client11.Services
+@using Client11.Models
+@inject IProductServices ProductServices
+@inject ICategoryDataServices1 CategoryDataServices1
+@inject IMultipleFileUploadServices MultipleFileUploadServices
+@inject NavigationManager NavManager
+
+
+<MudPaper Height="800px" Style="overflow:hidden; position:relative;">
+    <MudDrawerContainer Class="mud-height-full">
+        <MudDrawer Open=true Elevation="0" Variant="@DrawerVariant.Persistent" Style="background: #4b6cb7;  /* fallback for old browsers */
+background: -webkit-linear-gradient(to right, #182848, #4b6cb7);  /* Chrome 10-25, Safari 5.1-6 */
+background: linear-gradient(to right, #182848, #4b6cb7);
+">
+            <MudDrawerHeader>
+                <MudText Typo="Typo.h6" Class="px-4 text-white ">PC NET</MudText>
+
+            </MudDrawerHeader>
+            <MudNavMenu Class="mud-width-full text-white " Style="margin: 0; padding: 0; height:100%;">
+                <MudNavLink @onclick="@(() => NavigateToDashboard())" Icon="@Icons.Material.Filled.Dashboard" IconColor="Color.Info">Dashboard</MudNavLink>
+
+                <MudNavGroup Title="Product Details" Icon="@Icons.Material.Filled.AppRegistration" Expanded="true">
+                    <MudNavLink href="category1" Icon="@Icons.Material.Filled.Category">Category</MudNavLink>
+                    <MudNavLink href="products" Icon="@Icons.Material.Filled.ProductionQuantityLimits">Products</MudNavLink>
+                    <MudNavLink href="stocks" Icon="@Icons.Material.Filled.WebStories">Stocks</MudNavLink>
+                    <MudNavLink href="orders" Icon="@Icons.Material.Filled.Sell">Orders</MudNavLink>
+                </MudNavGroup>
+                <MudNavGroup Title="Admin Setting" Icon="@Icons.Material.Filled.AdminPanelSettings" Expanded="true">
+                    <MudNavLink href="adminRegistration" Icon="@Icons.Material.Filled.Dataset">Add Admin</MudNavLink>
+                    <MudNavLink href="adminregistrationtable" Icon="@Icons.Material.Filled.TableChart">Admin Deateils</MudNavLink>
+                    <MudNavLink href="weather" Icon="@Icons.Material.Filled.TableChart">User Deateils</MudNavLink>
+
+                    <MudNavLink @onclick="@(()=>logOutUser())" Icon="@Icons.Material.Filled.Logout">LogOut</MudNavLink>
+                </MudNavGroup>
+            </MudNavMenu>
+        </MudDrawer>
+        <MudGrid>
+            <MudItem xs="12" sm="12" md="12" lg="12" xl="12" Class="d-flex justify-content-center">
+                <MudPaper Class="d-flex flex-column justify-content-center align-items-center mud-width-full py-3"
+                          Style="background: #00416A;  /* fallback for old browsers */
+                             background: -webkit-linear-gradient(to top, #E4E5E6, #00416A);  /* Chrome 10-25, Safari 5.1-6 */
+                             background: linear-gradient(to top, #E4E5E6, #00416A);">
+                    <h3 class="text-center">Welcome to Pc NET Computers</h3>
+                </MudPaper>
+            </MudItem>
+
+            <!-- Divide Screen into Two Parts -->
+            
+                <MudGrid Style="margin-left: 10px;">
+                    <!-- First Part -->
+                    
+                    <MudItem xs="12" sm="6" md="9" lg="30" xl="30">
+
+                        <div class="card">
+                            <h4 class="card-header">Products</h4>
+                            <div class="card-body">
+                                <div class="form-row">
+
+                                    <div class="form-group col-3">
+                                        <label>Name : </label>
+                                        <input @bind="productName" class="form-control" />
+
+                                    </div>
+
+                                    <div class="form-group col-3">
+                                        <label>Price : </label>
+                                        <input @bind="price" class="form-control" />
+
+                                    </div>
+
+                                    <div class="form-group col-3">
+                                        <label>Stock : </label>
+                                        <input @bind="stock" class="form-control" />
+
+                                    </div>
+
+
+
+
+                                    <div class="form-group col-3">
+                                        <label>Select Category</label>
+                                        @if (categoryList != null)
+                                        {
+                                            <select class="form-control" @onchange="@CategoryClicked">
+                                                <option value=""> Select </option>
+                                                @foreach (var cat in categoryList)
+                                                {
+                                                    <option value="@cat.UserID">@cat.FirstName</option>
+
+                                                }
+                                            </select>
+                                        }
+
+                                    </div>
+
+
+
+                                </div>
+
+
+                                <div class="form-group col-3">
+                                    <label>Images: </label>
+                                    <InputFile OnChange="OnInputFileChange" multiple />
+                                </div>
+
+
+
+
+
+                            </div>
+                            <div class="card-body">
+                            </div>
+
+
+                            <div class="text-left">
+
+                                <button type="submit" @onclick=" AddUserRecord" class="mt-2 btn btn-primary">Save</button>
+
+                            </div>
+
+
+
+
+
+                        </div>
+
+
+                    </MudItem>
+
+               
+
+                </MudGrid>
+
+            
+
+
+
+        </MudGrid>
+
+    </MudDrawerContainer>
+</MudPaper>
+
+
+
+
+
+
+
+
+@code {
+    private CategoryModel1 selectedCategory;
+    private string category111;
+    [Parameter]
+    public int adminID { get; set; }
+    private void CategoryClicked(ChangeEventArgs e)
+    {
+
+        int selectedCategoryId;
+        if (int.TryParse(e.Value.ToString(), out selectedCategoryId))
+        {
+            selectedCategory = categoryList.FirstOrDefault(cat => cat.UserID == selectedCategoryId);
+            category111 = selectedCategory?.FirstName;
+            selectedCategory.ProductNameforImageInCategory = productName;
+            // Additional logic if needed
+        }
+        else
+        {
+            selectedCategory = null; // Ensure setting to null for non-integer values
+            category111 = null;
+            // Handle parsing error if necessary
+        }
+
+
+    }
+
+
+    public List<CategoryModel1> categoryList { get; set; }
+    private List<ProductServicesModel> Users;
+    [Parameter]
+    public int UserID { get; set; }
+
+    private string productName;
+    private string price;
+    private string stock;
+
+    private string category1;
+    private string imageFiles;
+    private int fielId;
+
+    protected async override Task OnInitializedAsync()
+    {
+
+        // Users = await ProductServices.GetAllUser();
+
+        await GetCategories();
+        await LoadSavedImages();
+
+        if (UserID > 0)
+        {
+            var response = await ProductServices.GetUserByID(UserID);
+
+            if (response != null)
+            {
+                productName = response.ProductName;
+                price = response.Price;
+                stock = response.Stock;
+
+            }
+        }
+    }
+
+    ProductServicesModel productServicesModel = new();
+
+
+    private void Submit()
+    {
+
+    }
+
+
+
+    private async Task GetCategories()
+    {
+        categoryList = await CategoryDataServices1.GetAllUser();
+    }
+
+
+    private async void AddUserRecord()
+
+    {
+
+        var productServicesModel = new Models.ProductServicesModel
+                {
+                ProductName = productName,
+                Price = price,
+                Stock = stock,
+                Category111=category111,
+
+                UserID = UserID
+
+        };
+
+
+        SaveImageFile();
+
+        int response = -1;
+        if (UserID > 0)
+        {
+            response = await ProductServices.UpdateUser(productServicesModel);
+
+        }
+        else
+        {
+            response = await ProductServices.AddUser(productServicesModel);
+            //add record
+        }
+
+
+        if (response > 0)
+        {
+            // Users = await ProductServices.GetAllUser();
+            productName = price = stock = category111 = string.Empty;
+
+            this.StateHasChanged();
+            await App.Current.MainPage.DisplayAlert("Record Saved",
+            "Record Saved To Product Table ", "OK");
+
+        }
+        else
+        {
+            await App.Current.MainPage.DisplayAlert("Oops",
+           "Something went wrong while adding record", "OK");
+        }
+
+
+    }
+
+    
+
+
+    private async void DeleteUser(ProductServicesModel user)
+    {
+        var response = await ProductServices.DeleteUser(user);
+        if (response > 0)
+        {
+            Users.Remove(user);
+            this.StateHasChanged();
+        }
+    }
+    
+
+    MudMessageBox mbox { get; set; }
+    private void OnButtonClicked(ProductServicesModel user)
+    {
+        mbox.Show();
+
+        //DeleteUser(user);
+        StateHasChanged();
+    }
+
+
+    [Parameter]
+    public int imageID { get; set; }
+    private List<IBrowserFile> uploadedFiles = new List<IBrowserFile>();
+    private List<MultipleFileUploadModel> savedImages = new List<MultipleFileUploadModel>();
+
+    async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        uploadedFiles = e.GetMultipleFiles().ToList();
+        foreach (var file in uploadedFiles)
+        {
+            using (var stream = file.OpenReadStream())
+            {
+                using (var memoryStream = new MemoryStream())
+                {
+                    await stream.CopyToAsync(memoryStream);
+                    var imageData = memoryStream.ToArray();
+                    Console.WriteLine($"File Name: {file.Name}, File Size: {imageData.Length} bytes");
+                }
+            }
+        }
+
+        StateHasChanged(); // Ensure to trigger a re-render after updating the data
+    }
+
+    private async Task LoadSavedImages()
+    {
+        savedImages = await MultipleFileUploadServices.GetAllImages();
+        StateHasChanged();
+    }
+    private CategoryModel1 imageCategory;
+    
+
+    private async void SaveImageFile()
+    {
+
+        foreach (var file in uploadedFiles)
+        {
+            using (var stream = file.OpenReadStream())
+            {
+                using (var memoryStream = new MemoryStream())
+                {
+                    await stream.CopyToAsync(memoryStream);
+                    var imageData = memoryStream.ToArray();
+
+                    // Save to database using the service
+                    var image = new MultipleFileUploadModel
+                        {
+                            FielId = Guid.NewGuid().ToString(), // Generate a unique ID
+                            FileName = file.Name,
+                            ImageData = imageData,
+                            ProductnameForImage = productName
+                            
+
+
+
+                        };
+
+                    await MultipleFileUploadServices.AddImage(image);
+                }
+            }
+        }
+
+
+        await LoadSavedImages();
+    }
+
+    private async void DeleteImage(int index)
+    {
+        if (index >= 0 && index < savedImages.Count)
+        {
+            var imageToDelete = savedImages[index];
+            await MultipleFileUploadServices.DeleteImage(imageToDelete.FielId);
+            await LoadSavedImages();
+        }
+        else
+        {
+            Console.WriteLine("Invalid index");
+        }
+    }
+    private void logOutUser()
+    {
+        NavManager.NavigateTo("/");
+
+    }
+    private void NavigateToDashboard()
+    {
+        NavManager.NavigateTo($"/profile11/{adminID}");
+    }
+}

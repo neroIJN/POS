@@ -1,0 +1,109 @@
+﻿<!-- NavMenu.razor -->
+@namespace Client11.Components.Layout
+@using Client11.Services
+@using Client11.Models
+@inject IAppStateService AppStateService
+
+@if (AppStateService.LoggedInUser == null)
+{
+    <MudContainer Width="100%">
+        <MudPaper Width="fit" Class="d-inline-flex py-3" Elevation="0" Style="margin: 0; padding: 0;">
+            <MudNavMenu Class="mud-width-full" Style="margin: 0; padding: 0;">
+                <MudText Typo="Typo.h6" Class="px-4">PC NET</MudText>
+                <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">Welcome to our Platform</MudText>
+                <MudDivider Class="my-2" />
+
+                <MudNavLink href="" Icon="@Icons.Material.Filled.Dashboard">Login</MudNavLink>
+            </MudNavMenu>
+        </MudPaper>
+    </MudContainer>
+}
+else
+{
+    <MudContainer Width="100%">
+        <MudPaper Width="fit" Class="d-inline-flex py-3" Elevation="0" Style="margin: 0; padding: 0;">
+            <MudNavMenu Class="mud-width-full" Style="margin: 0; padding: 0;">
+                <MudText Typo="Typo.h6" Class="px-4">PC NET</MudText>
+                <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">Welcome to our Platform</MudText>
+                <MudDivider Class="my-2" />
+                <MudNavLink href="" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+                @if (userRole == "Admin")
+                {
+                    <MudNavGroup Title="Admin Details" Icon="@Icons.Material.Filled.People" Expanded="true">
+
+                        <MudNavLink href="adminregistrationtable" Icon="@Icons.Material.Filled.People">Admin Deateils</MudNavLink>
+
+                    </MudNavGroup>
+                    <MudNavGroup Title="Product Details" Icon="@Icons.Material.Filled.People" Expanded="true">
+
+                        <MudNavLink href="category1" Icon="@Icons.Material.Filled.People">Category</MudNavLink>
+                        <MudNavLink href="products" Icon="@Icons.Material.Filled.People">Products</MudNavLink>
+                        <MudNavLink href="stocks" Icon="@Icons.Material.Filled.People">Stocks</MudNavLink>
+                        <MudNavLink href="orders" Icon="@Icons.Material.Filled.People">Orders</MudNavLink>
+                    </MudNavGroup>
+
+                }
+                
+                
+                
+                
+                else if (userRole == "User")
+                {
+                    <MudNavGroup Title="Setting" Icon="@Icons.Material.Filled.Settings" Expanded="true">
+                        <MudNavGroup Title="User Details" Icon="@Icons.Material.Filled.AdminPanelSettings" Expanded="true">
+                            <MudNavLink href="update_user" Icon="@Icons.Material.Filled.People">Edit User</MudNavLink>
+                            <MudNavLink href="weather" Icon="@Icons.Material.Filled.People">Weather</MudNavLink>
+                            <MudNavLink href="registrationtable" Icon="@Icons.Material.Filled.People">Registration Table</MudNavLink>
+                           
+                        </MudNavGroup>
+
+                    </MudNavGroup>
+
+
+
+
+                    <MudNavGroup Title="Admin Details" Icon="@Icons.Material.Filled.People" Expanded="true">
+
+                        <MudNavLink href="adminregistrationtable" Icon="@Icons.Material.Filled.People">Admin Deateils</MudNavLink>
+
+                    </MudNavGroup>
+                    <MudNavGroup Title="Product Details" Icon="@Icons.Material.Filled.People" Expanded="true">
+
+                        <MudNavLink href="category1" Icon="@Icons.Material.Filled.People">Category</MudNavLink>
+                        <MudNavLink href="products" Icon="@Icons.Material.Filled.People">Products</MudNavLink>
+                        <MudNavLink href="stocks" Icon="@Icons.Material.Filled.People">Stocks</MudNavLink>
+                        <MudNavLink href="orders" Icon="@Icons.Material.Filled.People">Orders</MudNavLink>
+                    </MudNavGroup>
+                }
+                
+                
+            </MudNavMenu>
+        </MudPaper>
+    </MudContainer>
+}
+
+
+@code {
+    private string userEmail;
+    private string userRole;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await UpdateNavigationAsync();
+    }
+
+    private async Task UpdateNavigationAsync()
+    {
+        var loggedInUser = AppStateService.LoggedInUser;
+        userEmail = loggedInUser?.Email ?? "Guest";
+
+        userRole = AppStateService.GetUserRole();
+
+
+        // Trigger a re-render
+        StateHasChanged();
+    }
+
+   
+    
+}

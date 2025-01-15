@@ -1,0 +1,218 @@
+﻿@page "/adminRegistration"
+@page "/registration_Admin/{AdminID:int}"
+
+@using Client11.Services
+@using Client11.Models
+@inject IAdminRegistrationService AdminRegistrationService
+@inject NavigationManager NavManager
+
+
+
+
+
+<MudPaper Height="800px" Style="overflow:hidden; position:relative; ">
+    <MudDrawerContainer Class="mud-height-full">
+        <MudDrawer Open=true Elevation="0" Variant="@DrawerVariant.Persistent" Style="background: #4b6cb7;  /* fallback for old browsers */
+background: -webkit-linear-gradient(to right, #182848, #4b6cb7);  /* Chrome 10-25, Safari 5.1-6 */
+background: linear-gradient(to right, #182848, #4b6cb7);
+">
+            <MudDrawerHeader>
+                <MudText Typo="Typo.h6" Class="px-4 text-white ">PC NET</MudText>
+
+            </MudDrawerHeader>
+            <MudNavMenu Class="mud-width-full text-white " Style="margin: 0; padding: 0; height:100%;">
+                <MudNavLink @onclick="@(() => NavigateToDashboard())" Icon="@Icons.Material.Filled.Dashboard" IconColor="Color.Info">Dashboard</MudNavLink>
+
+                <MudNavGroup Title="Product Details" Icon="@Icons.Material.Filled.AppRegistration" Expanded="true">
+                    <MudNavLink href="category1" Icon="@Icons.Material.Filled.Category">Category</MudNavLink>
+                    <MudNavLink href="products" Icon="@Icons.Material.Filled.ProductionQuantityLimits">Products</MudNavLink>
+                    <MudNavLink href="stocks" Icon="@Icons.Material.Filled.WebStories">Stocks</MudNavLink>
+                    <MudNavLink href="orders" Icon="@Icons.Material.Filled.Sell">Orders</MudNavLink>
+                </MudNavGroup>
+                <MudNavGroup Title="Admin Setting" Icon="@Icons.Material.Filled.AdminPanelSettings" Expanded="true">
+                    <MudNavLink href="adminRegistration" Icon="@Icons.Material.Filled.Dataset">Add Admin</MudNavLink>
+                    <MudNavLink href="adminregistrationtable" Icon="@Icons.Material.Filled.TableChart">Admin Deateils</MudNavLink>
+                    <MudNavLink href="weather" Icon="@Icons.Material.Filled.TableChart">User Deateils</MudNavLink>
+
+                    <MudNavLink @onclick="@(()=>logOutUser(adminID))" Icon="@Icons.Material.Filled.Logout">LogOut</MudNavLink>
+                </MudNavGroup>
+            </MudNavMenu>
+        </MudDrawer>
+        <MudGrid>
+            <MudItem xs="12" sm="12" md="12" lg="12" xl="12" Class="d-flex justify-content-center">
+                <MudPaper Class="d-flex flex-column justify-content-center align-items-center mud-width-full py-3"
+                          Style="background: #00416A;  /* fallback for old browsers */
+                             background: -webkit-linear-gradient(to top, #E4E5E6, #00416A);  /* Chrome 10-25, Safari 5.1-6 */
+                             background: linear-gradient(to top, #E4E5E6, #00416A);">
+                    <h3 class="text-center">Hii @firstName, Welcome to Pc NET Computers</h3>
+                </MudPaper>
+            </MudItem>
+
+            <!-- Divide Screen into Two Parts -->
+            <MudGrid Style="margin-left: 10px; margin-top: 10px">
+                <!-- First Part -->
+                <EditForm Model="@adminRegistrationModel" OnValidSubmit="Submit" >
+                    <DataAnnotationsValidator />
+                    <div class="form-group">
+                        <label>First Name</label>
+                        <input class="form-control" @bind="firstName" placeholder="Enter First Name">
+                        <ValidationMessage For="@(()=> adminRegistrationModel.FirstName)" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Last Name</label>
+                        <input class="form-control" @bind="lastName" placeholder="Enter Last Name">
+                        <ValidationMessage For="@(()=> adminRegistrationModel.LastName)" />
+
+                    </div>
+
+                    <div class="mt-2 form-group">
+                        <label>Gender</label>
+                        <div class="d-flex flex-row">
+                            <div class="d-flex gap-2">
+                                <div class="form-check">
+                                    <input checked="@(gender=="Male")" @onchange="@(()=> setGender("Male"))" class="form-check-input" type="radio" name="flexRadioDefault">
+                                    <label class="form-check-label" for="flexRadioDefault1">
+                                        Male
+                                    </label>
+                                    <ValidationMessage For="@(()=> adminRegistrationModel.Gender)" />
+                                </div>
+                                <div class="form-check">
+                                    <input checked="@(gender=="Female")" @onchange="@(()=> setGender("Female"))" class="form-check-input" type="radio" name="flexRadioDefault">
+                                    <label class="form-check-label" for="flexRadioDefault2">
+                                        Female
+                                    </label>
+
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="form-group">
+                        <label>Email address</label>
+                        <input type="email" @bind="email" class="form-control" placeholder="Enter Email">
+                        <ValidationMessage For="@(()=> adminRegistrationModel.Email)" />
+                    </div>
+                    <div class="mt-2 form-group">
+                        <label>Password</label>
+                        <input type="password" @bind="password" class="form-control" placeholder="Password">
+                        <ValidationMessage For="@(()=> adminRegistrationModel.Password)" />
+                    </div>
+
+                    <div class="mt-2 text-end">
+                        <NavLink class="nav-link" href="/">
+                            <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Alredy have an Account
+                        </NavLink>
+                    </div>
+
+                    <div class="text-center mt-2">
+                        <button class="btn btn-primary" @onclick="AddAdminRecode" type="submit">Register</button>
+
+                    </div>
+
+
+                </EditForm>
+
+               
+            </MudGrid>
+
+
+
+        </MudGrid>
+
+    </MudDrawerContainer>
+</MudPaper>
+
+
+@code {
+    [Parameter]
+    public int adminID { get; set; }
+
+    private string firstName;
+    private string lastName;
+    private string email;
+    private string gender;
+    private string password;
+
+    private void setGender(string gender)
+    {
+        this.gender = gender;
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        if (adminID > 0)
+        {
+            var response = await AdminRegistrationService.GetAdminByID(adminID);
+            if (response != null)
+            {
+                firstName = response.FirstName;
+                lastName = response.LastName;
+                email = response.Email;
+                gender = response.Gender;
+                password = response.Password;
+            }
+        }
+    }
+
+
+    AdminRegistrationModel adminRegistrationModel = new();
+    private void Submit()
+    {
+
+    }
+
+    private async void AddAdminRecode()
+    {
+
+        var adminRegistrationModel = new Models.AdminRegistrationModel
+            {
+                FirstName = firstName,
+                LastName = lastName,
+                Email = email,
+                Gender = gender,
+                Password = password,
+                AdminID = adminID
+            };
+
+        int response = -1;
+        
+        if (adminID > 0)
+        {
+            response = await AdminRegistrationService.UpdateAdmin(adminRegistrationModel);
+
+        }
+        else
+        {
+            response = await AdminRegistrationService.AddAdmin(adminRegistrationModel);
+
+        }
+
+        if (response > 0)
+        {
+            firstName = lastName = gender = email = password = string.Empty;
+
+            await App.Current.MainPage.DisplayAlert("Record Saved",
+            "Record Saved To Registration Table", "OK");
+            NavManager.NavigateTo($"/");
+        }
+        else
+        {
+            await App.Current.MainPage.DisplayAlert("Oops",
+           "Something went wrong while adding record", "OK");
+        }
+
+
+    }
+    private void logOutUser(int AdminID)
+    {
+        NavManager.NavigateTo("/");
+
+    }
+    private void NavigateToDashboard()
+    {
+        NavManager.NavigateTo($"/profile11/{adminID}");
+    }
+}
+}

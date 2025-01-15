@@ -1,0 +1,116 @@
+﻿@page "/productimage"
+
+@using Client11.Services
+@using Client11.Models
+@inject IProductServices ProductServices
+@inject IRegistrationService RegistrationService
+@inject ICategoryDataServices1 CategoryDataServices1
+@inject IMultipleFileUploadServices MultipleFileUploadServices
+
+
+
+@inject NavigationManager NavManager
+
+<MudPaper Height="800px" Style="overflow:hidden; position:relative;">
+    <MudDrawerContainer Class="mud-height-full">
+        <MudDrawer Open=true Elevation="0" Variant="@DrawerVariant.Persistent" Style="background: #4b6cb7;  /* fallback for old browsers */
+background: -webkit-linear-gradient(to right, #182848, #4b6cb7);  /* Chrome 10-25, Safari 5.1-6 */
+background: linear-gradient(to right, #182848, #4b6cb7);
+">
+            <MudDrawerHeader>
+                <MudText Typo="Typo.h6" Class="px-4 text-white ">PC NET</MudText>
+
+            </MudDrawerHeader>
+            <MudNavMenu Class="mud-width-full text-white " Style="margin: 0; padding: 0; height:100%;">
+                <MudNavLink Icon="@Icons.Material.Filled.Dashboard" IconColor="Color.Info">Dashboard</MudNavLink>
+                
+
+                @* <MudNavGroup Title="User Details" Icon="@Icons.Material.Filled.AdminPanelSettings" Expanded="true">
+                <MudNavLink href="update_user" Icon="@Icons.Material.Filled.People">Edit User</MudNavLink>
+                <MudNavLink href="weather" Icon="@Icons.Material.Filled.People">Weather</MudNavLink>
+                <MudNavLink href="registrationtable" Icon="@Icons.Material.Filled.People">Registration Table</MudNavLink>
+
+                </MudNavGroup> *@
+
+                <MudNavGroup Title="User Setting" Icon="@Icons.Material.Filled.AdminPanelSettings" Expanded="true">
+                    <MudNavLink @onclick="@(()=>logOutUser())" Icon="@Icons.Material.Filled.Logout">LogOut</MudNavLink>
+                </MudNavGroup>
+            </MudNavMenu>
+        </MudDrawer>
+        <MudGrid>
+            <MudItem xs="12" sm="12" md="12" lg="12" xl="12" Class="d-flex justify-content-center">
+                <MudPaper Class="d-flex flex-column justify-content-center align-items-center mud-width-full py-3"
+                          Style="background: #00416A;  /* fallback for old browsers */
+                             background: -webkit-linear-gradient(to top, #E4E5E6, #00416A);  /* Chrome 10-25, Safari 5.1-6 */
+                             background: linear-gradient(to top, #E4E5E6, #00416A);">
+                    <h3 class="text-center">Hii  Welcome to Pc NET Computers</h3>
+                </MudPaper>
+            </MudItem>
+
+            <!-- Divide Screen into Two Parts -->
+
+            <MudGrid Style="margin-left: 10px;">
+                
+                @{
+                    try
+                    {
+                        if (savedImages != null && savedImages.Any())
+                        {
+                            foreach (var (image, index) in savedImages.Select((value, index) => (value, index)))
+                            {
+                                <MudItem xs="12" sm="6" md="9" lg="6" xl="6">
+                                    <img src="data:image/png;base64,@Convert.ToBase64String(image.ImageData)" alt="@image.FileName" />
+                                </MudItem>
+                            }
+                        }
+                        else
+                        {
+                            <p>No images available</p>
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        <p>Error displaying images: @ex.Message</p>
+                    }
+                }
+                
+            </MudGrid>
+
+
+
+
+        </MudGrid>
+
+    </MudDrawerContainer>
+</MudPaper>
+
+
+
+@code {
+    private List<MultipleFileUploadModel> savedImages;
+    [Parameter]
+    public string ImageDataUrl { get; set; }
+    [Parameter]
+    public int userID { get; set; }
+    protected async override Task OnInitializedAsync()
+    {
+        await LoadSavedImages();
+        await ProductServices.GetAllUser();
+    }
+    private async Task LoadSavedImages()
+    {
+        savedImages = await MultipleFileUploadServices.GetAllImages();
+        StateHasChanged();
+    }
+
+
+    private void logOutUser()
+    {
+        NavManager.NavigateTo("/");
+
+    }
+}
+
+
+
+

@@ -1,0 +1,15 @@
+﻿<!-- Home.razor -->
+@page "/"
+@layout Components.Layout.HomeLayout
+
+
+<button @onclick="NavigateToMainLayout">Go to Main Layout</button>
+
+@code {
+    [Inject] private NavigationManager NavManager { get; set; }
+
+    private void NavigateToMainLayout()
+    {
+        NavManager.NavigateTo("/"); // Change this to navigate to the appropriate route
+    }
+}

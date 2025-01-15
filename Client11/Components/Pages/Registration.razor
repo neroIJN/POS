@@ -1,0 +1,155 @@
+﻿@page "/registration"
+@page "/registration_User/{UserID:int}"
+@using Client11.Services
+@using Client11.Models
+@inject IRegistrationService RegistrationService
+@inject NavigationManager NavManager
+
+<div style="text-align: center; padding-top: 20px;">
+    <h3>User Registration</h3>
+</div>
+
+<EditForm Model="@registrationModel" OnValidSubmit="Submit" style="padding: 50px 30px;">
+    <DataAnnotationsValidator />
+    <div class="form-group">
+        <label>First Name</label>
+        <input class="form-control" @bind="firstName" placeholder="Enter First Name">
+        <ValidationMessage For="@(()=> registrationModel.FirstName)" />
+    </div>
+
+    <div class="form-group">
+        <label>Last Name</label>
+        <input class="form-control" @bind="lastName" placeholder="Enter Last Name">
+        <ValidationMessage For="@(()=> registrationModel.LastName)" />
+
+    </div>
+
+    <div class="mt-2 form-group">
+        <label>Gender</label>
+        <div class="d-flex flex-row">
+            <div class="d-flex gap-2">
+                <div class="form-check">
+                    <input checked="@(gender=="Male")" @onchange="@(()=> setGender("Male"))" class="form-check-input" type="radio" name="flexRadioDefault">
+                    <label class="form-check-label" for="flexRadioDefault1">
+                        Male
+                    </label>
+                     <ValidationMessage For="@(()=> registrationModel.Gender)" />
+                </div>
+                <div class="form-check">
+                    <input checked="@(gender=="Female")" @onchange="@(()=> setGender("Female"))" class="form-check-input" type="radio" name="flexRadioDefault">
+                    <label class="form-check-label" for="flexRadioDefault2">
+                        Female
+                    </label>
+                     
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+    <div class="form-group">
+        <label>Email address</label>
+        <input type="email" @bind="email" class="form-control" placeholder="Enter Email">
+        <ValidationMessage For="@(()=> registrationModel.Email)" />
+    </div>
+    <div class="mt-2 form-group">
+        <label>Password</label>
+        <input type="password" @bind="password" class="form-control" placeholder="Password">
+        <ValidationMessage For="@(()=> registrationModel.Password)" />
+    </div>
+
+    <div class="mt-2 text-end">
+        <NavLink class="nav-link" href="/login">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Alredy have an Account
+            </NavLink>
+    </div>
+
+    <div class="text-center mt-2">
+        <button class="btn btn-primary" @onclick="AddUserRecode" type="submit">Register</button>
+
+    </div>
+
+    
+</EditForm>
+
+@code {
+    [Parameter]
+    public int UserID { get; set; }
+
+    private string firstName;
+    private string lastName;
+    private string email;
+    private string gender;
+    private string password;
+
+    private void setGender(string gender)
+    {
+        this.gender = gender;
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        if (UserID > 0)
+        {
+            var response = await RegistrationService.GetUserByID(UserID);
+            if (response != null)
+            {
+                firstName = response.FirstName;
+                lastName = response.LastName;
+                email = response.Email;
+                gender = response.Gender;
+                password = response.Password;
+            }
+        }
+    }
+
+
+    RegistrationModel registrationModel = new();
+    private void Submit(){
+
+    }
+
+    private async void AddUserRecode()
+    {
+
+        var registrationModel = new Models.RegistrationModel
+        {
+                FirstName = firstName,
+                LastName = lastName,
+                Email = email,
+                Gender = gender,
+                Password = password,
+                UserID = UserID
+        };
+
+        int response = -1;
+        if (UserID > 0)
+        {
+            response = await RegistrationService.UpdateUser(registrationModel);
+
+        }
+        else
+        {
+            response = await RegistrationService.AddUser(registrationModel);
+
+        }
+
+        if (response > 0)
+        {
+            firstName = lastName = gender = email = password= string.Empty;
+            
+            await App.Current.MainPage.DisplayAlert("Record Saved",
+            "Record Saved To Registration Table", "OK");
+            NavManager.NavigateTo($"/login");
+        }
+        else
+        {
+            await App.Current.MainPage.DisplayAlert("Oops",
+           "Something went wrong while adding record", "OK");
+        }
+        
+         
+    }
+
+
+}

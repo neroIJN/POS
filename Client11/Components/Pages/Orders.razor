@@ -1,0 +1,178 @@
+﻿@page "/orders"
+
+
+
+
+@using Client11.Services
+@using Client11.Models
+@inject IMultipleFileUploadServices MultipleFileUploadServices
+@inject NavigationManager NavManager
+
+<MudPaper Height="800px" Style="overflow:hidden; position:relative;">
+    <MudDrawerContainer Class="mud-height-full">
+        <MudDrawer Open=true Elevation="0" Variant="@DrawerVariant.Persistent" Style="background: #4b6cb7;  /* fallback for old browsers */
+background: -webkit-linear-gradient(to right, #182848, #4b6cb7);  /* Chrome 10-25, Safari 5.1-6 */
+background: linear-gradient(to right, #182848, #4b6cb7);
+">
+            <MudDrawerHeader>
+                <MudText Typo="Typo.h6" Class="px-4 text-white ">PC NET</MudText>
+
+            </MudDrawerHeader>
+            <MudNavMenu Class="mud-width-full text-white " Style="margin: 0; padding: 0; height:100%;">
+                <MudNavLink @onclick="@(() => NavigateToDashboard())" Icon="@Icons.Material.Filled.Dashboard" IconColor="Color.Info">Dashboard</MudNavLink>
+
+                <MudNavGroup Title="Product Details" Icon="@Icons.Material.Filled.AppRegistration" Expanded="true">
+                    <MudNavLink href="category1" Icon="@Icons.Material.Filled.Category">Category</MudNavLink>
+                    <MudNavLink href="products" Icon="@Icons.Material.Filled.ProductionQuantityLimits">Products</MudNavLink>
+                    <MudNavLink href="stocks" Icon="@Icons.Material.Filled.WebStories">Stocks</MudNavLink>
+                    <MudNavLink href="orders" Icon="@Icons.Material.Filled.Sell">Orders</MudNavLink>
+                </MudNavGroup>
+                <MudNavGroup Title="Admin Setting" Icon="@Icons.Material.Filled.AdminPanelSettings" Expanded="true">
+                    <MudNavLink href="adminRegistration" Icon="@Icons.Material.Filled.Dataset">Add Admin</MudNavLink>
+                    <MudNavLink href="adminregistrationtable" Icon="@Icons.Material.Filled.TableChart">Admin Deateils</MudNavLink>
+                    <MudNavLink href="weather" Icon="@Icons.Material.Filled.TableChart">User Deateils</MudNavLink>
+
+                    <MudNavLink @onclick="@(()=>logOutUser())" Icon="@Icons.Material.Filled.Logout">LogOut</MudNavLink>
+                </MudNavGroup>
+            </MudNavMenu>
+        </MudDrawer>
+        <MudGrid>
+            <MudItem xs="12" sm="12" md="12" lg="12" xl="12" Class="d-flex justify-content-center">
+                <MudPaper Class="d-flex flex-column justify-content-center align-items-center mud-width-full py-3"
+                          Style="background: #00416A;  /* fallback for old browsers */
+                             background: -webkit-linear-gradient(to top, #E4E5E6, #00416A);  /* Chrome 10-25, Safari 5.1-6 */
+                             background: linear-gradient(to top, #E4E5E6, #00416A);">
+                    <h3 class="text-center">Welcome to Pc NET Computers</h3>
+                </MudPaper>
+            </MudItem>
+
+            <!-- Divide Screen into Two Parts -->
+            <MudGrid Style="margin-left: 10px; margin-top: 10px">
+                <!-- First Part -->
+                <div style="height: 700px; overflow: auto;">
+                    <MudItem xs="12" sm="6" md="9" lg="6" xl="6">
+
+
+                        @* <div class="form-group col-3">
+                            <label>Images: </label>
+                            <InputFile OnChange="OnInputFileChange" multiple />
+                        </div>
+
+                        <div class="text-left">
+                            <button type="submit" @onclick="SaveImageFile" class="mt-2 btn btn-primary">Save</button>
+                        </div> *@
+
+                        @foreach (var (image, index) in savedImages.Select((value, index) => (value, index)))
+                        {
+                            <div>
+                                <img src="data:image/png;base64,@Convert.ToBase64String(image.ImageData)" alt="@image.FileName" />
+                                <button @onclick="() => DeleteImage(index)" class="btn btn-danger">Delete</button>
+                            </div>
+                        }
+
+
+                    </MudItem>
+
+                </div>
+
+            </MudGrid>
+
+
+
+
+        </MudGrid>
+
+    </MudDrawerContainer>
+</MudPaper>
+
+
+
+
+@code {
+    [Parameter]
+    public int imageID { get; set; }
+    [Parameter]
+    public int adminID { get; set; }
+    private List<IBrowserFile> uploadedFiles = new List<IBrowserFile>();
+    private List<MultipleFileUploadModel> savedImages = new List<MultipleFileUploadModel>();
+    async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        uploadedFiles = e.GetMultipleFiles().ToList();
+        foreach (var file in uploadedFiles)
+        {
+            using (var stream = file.OpenReadStream())
+            {
+                using (var memoryStream = new MemoryStream())
+                {
+                    await stream.CopyToAsync(memoryStream);
+                    var imageData = memoryStream.ToArray();
+                    Console.WriteLine($"File Name: {file.Name}, File Size: {imageData.Length} bytes");
+                }
+            }
+        }
+        StateHasChanged(); // Ensure to trigger a re-render after updating the data
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSavedImages();
+    }
+    private async Task LoadSavedImages()
+    {
+        savedImages = await MultipleFileUploadServices.GetAllImages();
+        StateHasChanged();
+    }
+
+    private async void SaveImageFile()
+    {
+        foreach (var file in uploadedFiles)
+        {
+            using (var stream = file.OpenReadStream())
+            {
+                using (var memoryStream = new MemoryStream())
+                {
+                    await stream.CopyToAsync(memoryStream);
+                    var imageData = memoryStream.ToArray();
+
+                    // Save to database using the service
+                    var image = new MultipleFileUploadModel
+                        {
+                            FielId = Guid.NewGuid().ToString(), // Generate a unique ID
+                            FileName = file.Name,
+                            ImageData = imageData
+                        };
+
+                    await MultipleFileUploadServices.AddImage(image);
+                }
+            }
+        }
+
+        await App.Current.MainPage.DisplayAlert("Record Saved", "Record Saved To Product Table ", "OK");
+        await LoadSavedImages();
+    }
+
+    private async void DeleteImage(int index)
+    {
+        if (index >= 0 && index < savedImages.Count)
+        {
+            var imageToDelete = savedImages[index];
+            await MultipleFileUploadServices.DeleteImage(imageToDelete.FielId);
+            await LoadSavedImages();
+        }
+        else
+        {
+            Console.WriteLine("Invalid index");
+        }
+    }
+    private void logOutUser()
+    {
+        NavManager.NavigateTo("/");
+
+    }
+    private void NavigateToDashboard()
+    {
+        NavManager.NavigateTo($"/profile11/{adminID}");
+    }
+}
+
+
+

@@ -1,0 +1,284 @@
+﻿@page "/login"
+@using Client11.Services
+@using Client11.Models
+@inject IRegistrationService RegistrationService
+@inject IAdminRegistrationService AdminRegistrationService
+@inject NavigationManager NavManager
+@inject IAppStateService AppStateService
+@inject IUserRoleService UserRoleService
+
+
+@inject IRegistrationService RegistrationService
+
+<div class="container-fluid" style="padding-top: 7%;">
+    <div class="row d-flex align-items-center">
+        <div class="col-md-6">
+
+            <MudPaper Class="pa-16 ma-2" Outlined="true" Style="background: #a8c0ff;  /* fallback for old browsers */
+background: -webkit-linear-gradient(to right, #3f2b96, #a8c0ff);  /* Chrome 10-25, Safari 5.1-6 */
+background: linear-gradient(to right, #3f2b96, #a8c0ff); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+">
+                <h4>User Login</h4>
+
+                <EditForm Model="@loginModel" OnValidSubmit="Submit">
+                    <DataAnnotationsValidator />
+                    <div class="form-group">
+                        <label>User Email address</label>
+                        <input type="email" @bind-value="loginModel.EmailAdress" class="form-control" placeholder="Enter User Email">
+                        <ValidationMessage For="@(()=> loginModel.EmailAdress)" />
+                    </div>
+                    <div class="mt-2 form-group">
+                        <label> User Password</label>
+                        <input type="password" @bind-value="loginModel.Password" class="form-control" placeholder="User Password">
+                        <ValidationMessage For="@(()=> loginModel.Password)" />
+                    </div>
+
+                    <div class="mt-2 text-end">
+                        <NavLink class="nav-link" href="registration " style="color:#311B92;">
+                            <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Click here to create new user account
+                        </NavLink>
+                    </div>
+
+                    <div class="text-center mt-2">
+
+                        <button class="btn btn-primary" @onclick="CheckLogin">
+                            <span class="@(_isCheckingLogin ? "spinner-border spinner-border-sm" : "")" role="status" aria-hidden="true"></span>
+                            User Log In
+                        </button>
+
+
+                    </div>
+
+                </EditForm>
+            </MudPaper>
+        </div>
+        <div class="col-md-6">
+
+
+            <MudPaper Class="pa-16 ma-2" Outlined="true" Square="true" Style="background: #a8c0ff;  /* fallback for old browsers */
+background: -webkit-linear-gradient(to left, #3f2b96, #a8c0ff);  /* Chrome 10-25, Safari 5.1-6 */
+background: linear-gradient(to left, #3f2b96, #a8c0ff); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+">
+                <h4>Admin Login</h4>
+
+                <EditForm Model="@adminLoginModel" OnValidSubmit="SubmitAdmin">
+                    <DataAnnotationsValidator />
+                    <div class="form-group">
+                        <label>Admin Email address</label>
+                        <input type="email" @bind-value="adminLoginModel.EmailAdress" class="form-control" placeholder="Enter Admin Email">
+                        <ValidationMessage For="@(()=> adminLoginModel.EmailAdress)" />
+                    </div>
+                    <div class="mt-2 form-group">
+                        <label>Admin Password</label>
+                        <input type="password" @bind-value="adminLoginModel.Password" class="form-control" placeholder="Admin Password">
+                        <ValidationMessage For="@(()=> adminLoginModel.Password)" />
+                    </div>
+                    <div class="mt-2 text-end">
+                        <NavLink class="nav-link" href="adminRegistration1" style="color:#311B92;">
+                            <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Click here to create new admin account
+                        </NavLink>
+                    </div>
+                    <div class="text-center mt-2">
+                        <button class="btn btn-primary" @onclick="CheckAdminLogin">
+                            <span class="@(_isAdminCheckingLogin ? "spinner-border spinner-border-sm" : "")" role="status" aria-hidden="true"></span>
+                            Admin Log In
+                        </button>
+                    </div>
+                </EditForm>
+            </MudPaper>
+
+
+        </div>
+    </div>
+</div>
+
+
+
+
+@code {
+
+
+    private AdminLoginModel adminLoginModel = new();
+    private string userRole;
+    private bool _isAdminCheckingLogin { get; set; }
+    private bool _isCheckingLogin { get; set; }
+
+
+
+
+
+
+    private bool IsAdmin(AdminRegistrationModel admin)
+    {
+        // Replace with your logic to check if the user is an admin
+        return admin != null && admin.UserRole == "Admin";
+    }
+
+
+
+    LoginModel loginModel = new();
+    private List<RegistrationModel> Users;
+    private string userEmail;
+    protected override async Task OnInitializedAsync()
+    {
+        var loggedInUser = AppStateService.LoggedInUser;
+
+        if (loggedInUser != null)
+        {
+            userEmail = loggedInUser.Email;
+            Console.WriteLine($"UserEmail set to {userEmail}");
+        }
+        else
+        {
+            // Handle the case when there is no logged-in user
+            userEmail = "Guest";
+        }
+    }
+
+    private string _spinnerClass = "";
+    private int userId;
+
+    /*private async void Submit()
+    {
+        _spinnerClass = "spinner-border spinner-border-sm";
+        await Task.Delay(500);
+
+        var user = await RegistrationService.GetUserByEmailAndPassword(loginModel.EmailAdress, loginModel.Password);
+
+        if (user != null)
+        {
+            Console.WriteLine("Authentication successful");
+            //userId = user.UserID; // Assign user ID to the property
+            //AppStateService.SetLoggedInUser(user);
+            //AppStateService.GetUserByEmail(RegistrationModel.Email);
+
+            NavManager.NavigateTo($"/profile/{user.UserID}");
+        }
+        else
+        {
+            Console.WriteLine("Authentication failed");
+            // Provide feedback to the user or handle it differently
+            // For now, let's show an alert
+            await App.Current.MainPage.DisplayAlert("Authentication Failed", "Invalid email or password", "OK");
+            NavManager.NavigateTo($"/login");
+        }
+
+        _spinnerClass = "";
+        this.StateHasChanged();
+
+    }
+
+    */
+
+
+    private async void Submit()
+    {
+        _spinnerClass = "spinner-border spinner-border-sm";
+        await Task.Delay(100);
+
+        var user = await RegistrationService.GetUserByEmailAndPassword(loginModel.EmailAdress, loginModel.Password);
+
+        if (user != null)
+        {
+            Console.WriteLine("Authentication successful");
+            NavManager.NavigateTo($"/profile/{user.UserID}");
+        }
+        else
+        {
+            Console.WriteLine("Authentication failed");
+            AppStateService.SetLoggedInUser(null); // Clear user state on unsuccessful login
+            await App.Current.MainPage.DisplayAlert("Authentication Failed", "Invalid email or password", "OK");
+            NavManager.NavigateTo($"/login");
+        }
+
+        _spinnerClass = "";
+        this.StateHasChanged();
+
+    }
+
+    private async void SubmitAdmin()
+    {
+
+        _spinnerClass = "spinner-border spinner-border-sm";
+        await Task.Delay(100);
+
+        var admin = await AdminRegistrationService.GetAdminByEmailAndPassword(adminLoginModel.EmailAdress, adminLoginModel.Password);
+
+        if (admin != null)
+        {
+            Console.WriteLine("Authentication successful");
+
+
+            NavManager.NavigateTo($"/profile11/{admin.AdminID}");
+
+        }
+        else
+        {
+            Console.WriteLine("Authentication failed");
+            AppStateService.SetLoggedInUser(null);
+
+
+            await App.Current.MainPage.DisplayAlert("Authentication Failed", "Invalid email or password", "OK");
+            NavManager.NavigateTo($"/login");
+        }
+
+        _spinnerClass = "";
+        this.StateHasChanged();
+    }
+
+
+
+
+    private async Task CheckLogin()
+    {
+        try
+        {
+            _isCheckingLogin = true;
+
+            var user = new RegistrationModel { Email = "test@example.com", /* other properties */ };
+
+            AppStateService.SetLoggedInUser(user);
+
+            NavManager.NavigateTo("/dashboard");
+        }
+        catch (Exception ex)
+        {
+            // Handle any exceptions during the login check
+            Console.WriteLine(ex.Message);
+        }
+        finally
+        {
+            _isCheckingLogin = false;
+
+            NavManager.NavigateTo("/login");
+        }
+
+
+
+    }
+    private async Task CheckAdminLogin()
+    {
+        try
+        {
+            _isAdminCheckingLogin = true;
+
+            var admin = new AdminRegistrationModel { Email = "test@example.com", /* other properties */ };
+
+            AppStateService.SetLoggedInAdmin(admin);
+
+            NavManager.NavigateTo("/dashboard");
+        }
+        catch (Exception ex)
+        {
+            // Handle any exceptions during the login check
+            Console.WriteLine(ex.Message);
+        }
+        finally
+        {
+            _isCheckingLogin = false;
+            NavManager.NavigateTo("/login");
+        }
+    }
+
+
+}

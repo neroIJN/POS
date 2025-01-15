@@ -1,0 +1,45 @@
+﻿@page "/counter"
+
+<h1>Counter</h1>
+
+<p role="status">Current count: @currentCount</p>
+
+<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+
+<MudCard Outlined="true">
+    <MudCardContent>
+        <MudText>Story of the day</MudText>
+        <MudText Typo="Typo.body2">The quick, brown fox jumps over a lazy dog.</MudText>
+    </MudCardContent>
+    <MudCardActions>
+        <MudButton Variant="Variant.Text" Color="Color.Primary">Learn More</MudButton>
+    </MudCardActions>
+</MudCard>
+
+<div class="container">
+    <div class="row">
+        <div class="col-6">
+            <MudTimePicker @ref="_picker" Label="With action buttons" AutoClose="@autoClose">
+                <PickerActions>
+                    <MudButton Class="mr-auto align-self-start" OnClick="@(() => _picker.Clear())">Clear</MudButton>
+                    <MudButton OnClick="@(() => _picker.Close(false))">Cancel</MudButton>
+                    <MudButton Color="Color.Primary" OnClick="@(() => _picker.Close())">Ok</MudButton>
+                </PickerActions>
+            </MudTimePicker>
+            <MudSwitch @bind-Checked="@autoClose" Color="Color.Secondary">AutoClose</MudSwitch>
+        </div>
+    </div>
+</div>
+<MudImage Fluid="true" Src="/coding.png" Alt="Swedish Farm House" Class="rounded-lg" />
+@code {
+    private int currentCount = 0;
+
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+
+    MudTimePicker _picker;
+    TimeSpan? time = new TimeSpan(00, 45, 00);
+    private bool autoClose;
+}

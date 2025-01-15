@@ -1,0 +1,55 @@
+﻿@using MudBlazor
+@inherits LayoutComponentBase
+@using Client11.Services
+@using Client11.Models
+@inject IRegistrationService RegistrationService
+@inject NavigationManager NavManager
+<MudThemeProvider/>
+<MudDialogProvider/>
+<MudSnackbarProvider/>
+<div class="page">
+@*     <div class="sidebar">
+        <NavMenu />
+    </div>
+ *@
+    <main>
+           
+        @* <article class="content px-4"> *@
+        <article>
+            @Body
+        </article>
+    </main>
+</div>
+
+
+@code {
+
+    [Parameter]
+    public int userID { get; set; }
+
+    private string firstName;
+    private string lastName;
+
+    protected async override Task OnInitializedAsync()
+    {
+        Console.WriteLine($"UserID: {userID}");
+
+        if (userID > 0)
+        {
+            var response = await RegistrationService.GetUserByID(userID);
+            if (response != null)
+            {
+                firstName = response.FirstName;
+                lastName = response.LastName;
+            }
+        }
+    }
+
+    private void logOutUser(int UserID)
+    {
+        NavManager.NavigateTo("/");
+
+    }
+
+
+}

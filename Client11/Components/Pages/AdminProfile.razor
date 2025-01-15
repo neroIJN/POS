@@ -1,0 +1,120 @@
+﻿
+@page "/profile11/{adminId:int}"
+@using Client11.Services
+@using Client11.Models
+@inject IAdminRegistrationService AdminRegistrationService
+
+@inject NavigationManager NavManager
+
+<MudPaper Height="800px" Style="overflow:hidden; position:relative;">
+     <MudDrawerContainer Class="mud-height-full">
+        <MudDrawer Open=true Elevation="0" Variant="@DrawerVariant.Persistent" Style="background: #4b6cb7;  /* fallback for old browsers */
+background: -webkit-linear-gradient(to right, #182848, #4b6cb7);  /* Chrome 10-25, Safari 5.1-6 */
+background: linear-gradient(to right, #182848, #4b6cb7);
+">
+            <MudDrawerHeader>
+                <MudText Typo="Typo.h6" Class="px-4 text-white ">PC NET</MudText>
+                
+            </MudDrawerHeader>
+            <MudNavMenu Class="mud-width-full text-white " Style="margin: 0; padding: 0; height:100%;">
+                <MudNavLink @onclick="@(() => NavigateToDashboard())" Icon="@Icons.Material.Filled.Dashboard" IconColor="Color.Info">Dashboard</MudNavLink>
+                
+                <MudNavGroup Title="Product Details" Icon="@Icons.Material.Filled.AppRegistration" Expanded="true">
+                        <MudNavLink href="category1"  Icon="@Icons.Material.Filled.Category">Category</MudNavLink>
+                    <MudNavLink href="products" Icon="@Icons.Material.Filled.ProductionQuantityLimits">Products</MudNavLink>
+                    <MudNavLink href="stocks" Icon="@Icons.Material.Filled.WebStories">Stocks</MudNavLink>
+                    <MudNavLink href="orders" Icon="@Icons.Material.Filled.Sell">Orders</MudNavLink>
+                    </MudNavGroup>
+                <MudNavGroup Title="Admin Setting" Icon="@Icons.Material.Filled.AdminPanelSettings" Expanded="true">
+                    <MudNavLink href="adminRegistration" Icon="@Icons.Material.Filled.Dataset">Add Admin</MudNavLink>
+                    <MudNavLink href="adminregistrationtable" Icon="@Icons.Material.Filled.TableChart">Admin Deateils</MudNavLink>
+                    <MudNavLink href="weather" Icon="@Icons.Material.Filled.TableChart">User Deateils</MudNavLink>
+
+                    <MudNavLink @onclick="@(()=>logOutUser(adminID))" Icon="@Icons.Material.Filled.Logout" >LogOut</MudNavLink>
+                </MudNavGroup>
+         </MudNavMenu>
+
+    </MudDrawer>
+    <MudGrid>
+            <MudItem xs="12" sm="12" md="12" lg="12" xl="12" Class="d-flex justify-content-center">
+                <MudPaper Class="d-flex flex-column justify-content-center align-items-center mud-width-full py-3"
+                          Style="background: #00416A;  /* fallback for old browsers */
+                             background: -webkit-linear-gradient(to top, #E4E5E6, #00416A);  /* Chrome 10-25, Safari 5.1-6 */
+                             background: linear-gradient(to top, #E4E5E6, #00416A);">
+                    <h3 class="text-center">Hii @firstName, Welcome to Pc NET Computers</h3>
+                </MudPaper>
+
+            </MudItem>
+
+            <MudGrid>
+                <MudItem xs="8" sm="8" md="8" lg="8" xl="8" Class="d-flex justify-content-center">
+                    <MudHidden Breakpoint="@Breakpoint.Xs">
+                        <MudDatePicker PickerVariant="PickerVariant.Static" Orientation="Orientation.Landscape" Date="@(DateTime.Today.AddDays(0))" />
+
+                    </MudHidden>
+                </MudItem>
+
+                <div class="row d-flex align-items-center" Style="margin-left: 120px; margin-top: 10px">
+                    
+                    <MudChart ChartType="ChartType.Bar" ChartSeries="@Series" @bind-SelectedIndex="Index" XAxisLabels="@XAxisLabels" Width="100%" Height="350px"></MudChart>
+                </div>
+                
+
+                    
+            </MudGrid>
+
+            
+
+           
+    </MudGrid>
+     
+    </MudDrawerContainer >
+</MudPaper>
+
+
+
+
+@code {
+    [Parameter]
+    public int adminID { get; set; }
+
+    private string firstName;
+    private string lastName;
+
+    protected async override Task OnInitializedAsync()
+    {
+        Console.WriteLine($"AdminID: {adminID}");
+
+        if (adminID > 0)
+        {
+            var response = await AdminRegistrationService.GetAdminByID(adminID);
+            if (response != null)
+            {
+                firstName = response.FirstName;
+                lastName = response.LastName;
+            }
+        }
+    }
+
+    private void logOutUser(int AdminID)
+    {
+        NavManager.NavigateTo("/");
+
+    }
+    private void NavigateToDashboard()
+    {
+        NavManager.NavigateTo($"/profile11/{adminID}");
+    }
+
+    private int Index = -1; //default value cannot be 0 -> first selectedindex is 0.
+
+    public List<ChartSeries> Series = new List<ChartSeries>()
+                {
+                new ChartSeries() { Name = "LAPTOPS", Data = new double[] { 40, 20, 25, 27, 46, 60, 48, 80, 15 } },
+                new ChartSeries() { Name = "DESKTOP WORKSTATIONS", Data = new double[] { 19, 24, 35, 13, 28, 15, 13, 16, 31 } },
+                new ChartSeries() { Name = "BUDGET DESKTOP COMPUTERS", Data = new double[] { 8, 6, 11, 13, 4, 16, 10, 16, 18 } },
+                };
+    public string[] XAxisLabels = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep" };
+}
+
+

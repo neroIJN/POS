@@ -1,0 +1,301 @@
+﻿@page "/profile1"
+@page "/profile/{userId:int}"
+@using Client11.Services
+@using Client11.Models
+@inject IProductServices ProductServices
+@inject IRegistrationService RegistrationService
+@inject ICategoryDataServices1 CategoryDataServices1
+@inject IMultipleFileUploadServices MultipleFileUploadServices
+
+
+
+@inject NavigationManager NavManager
+
+
+<MudPaper Height="800px" Style="overflow:hidden; position:relative;">
+    <MudDrawerContainer Class="mud-height-full">
+        <MudDrawer Open=true Elevation="0" Variant="@DrawerVariant.Persistent" Style="background: #4b6cb7;  /* fallback for old browsers */
+background: -webkit-linear-gradient(to right, #182848, #4b6cb7);  /* Chrome 10-25, Safari 5.1-6 */
+background: linear-gradient(to right, #182848, #4b6cb7);
+">
+            <MudDrawerHeader>
+                <MudText Typo="Typo.h6" Class="px-4 text-white ">PC NET</MudText>
+
+            </MudDrawerHeader>
+            <MudNavMenu Class="mud-width-full text-white " Style="margin: 0; padding: 0; height:100%;">
+                <MudNavLink  Icon="@Icons.Material.Filled.Dashboard" IconColor="Color.Info">Dashboard</MudNavLink>
+                <MudNavLink href="cart" Icon="@Icons.Material.Filled.AddShoppingCart">Cart</MudNavLink>
+                @* <MudNavGroup Title="User Details" Icon="@Icons.Material.Filled.AdminPanelSettings" Expanded="true">
+                    <MudNavLink href="update_user" Icon="@Icons.Material.Filled.People">Edit User</MudNavLink>
+                    <MudNavLink href="weather" Icon="@Icons.Material.Filled.People">Weather</MudNavLink>
+                    <MudNavLink href="registrationtable" Icon="@Icons.Material.Filled.People">Registration Table</MudNavLink>
+
+                </MudNavGroup> *@
+
+                <MudNavGroup Title="User Setting" Icon="@Icons.Material.Filled.AdminPanelSettings" Expanded="true">
+                    <MudNavLink @onclick="@(()=>logOutUser(userID))" Icon="@Icons.Material.Filled.Logout">LogOut</MudNavLink>
+                </MudNavGroup>
+            </MudNavMenu>
+        </MudDrawer>
+        <MudGrid>
+            <MudItem xs="12" sm="12" md="12" lg="12" xl="12" Class="d-flex justify-content-center">
+                <MudPaper Class="d-flex flex-column justify-content-center align-items-center mud-width-full py-3"
+                          Style="background: #00416A;  /* fallback for old browsers */
+                             background: -webkit-linear-gradient(to top, #E4E5E6, #00416A);  /* Chrome 10-25, Safari 5.1-6 */
+                             background: linear-gradient(to top, #E4E5E6, #00416A);">
+                    <h3 class="text-center">Hii @firstName, Welcome to Pc NET Computers</h3>
+                </MudPaper>
+            </MudItem>
+             <div style="height: 700px; overflow: auto;">
+                <MudGrid Style="margin-left: 10px;">
+                    <!-- First Part -->
+                    <MudItem xs="4" sm="4" md="4" lg="4" xl="4">
+                        <!-- Add content for the first part here -->
+                        <div style="min-height:500px;">
+                            <div style="display:flex;">
+                                <div class="d-flex flex-grow-1 gap-4">
+                                    @if (categories == null)
+                                    {
+                                        <span>Loading</span>
+                                    }
+                                    else
+                                    {
+                                        <ul>
+                                            <MudItem><h2>Categories</h2></MudItem>
+                                            @foreach (var category in categories)
+                                            {
+                                                <MudPaper Width="300px" Square="true" Style="background: #A770EF;  /* fallback for old browsers */
+background: -webkit-linear-gradient(to left, #FDB99B, #CF8BF3, #A770EF);  /* Chrome 10-25, Safari 5.1-6 */
+background: linear-gradient(to left, #FDB99B, #CF8BF3, #A770EF); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+        ">
+                                                    <MudList Clickable="true">
+                                                        <MudListItem><li style="cursor:pointer;" @onclick="(() => LoadProductByCategory(category))">@category.FirstName</li></MudListItem>
+                                                    </MudList>
+                                                </MudPaper>
+                                            }
+                                        </ul>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </MudItem>
+
+                    <!-- Second Part -->
+                    <MudItem xs="4" sm="4" md="8" lg="8" xl="8">
+                        <!-- Add content for the second part here -->
+                        
+                        
+
+                        @if (Users == null)
+                        {
+                            <p><em>Loading...</em></p>
+                        }
+                        else
+                        {
+                            @if (focused == null || !focused.Any())
+                            {
+       
+
+                                    <td colspan="4"><em>No data available</em></td>
+
+                               
+                            }
+                            else
+                            {
+                                <h3>Products</h3>
+                                <MudGrid>
+                                    @foreach (var user in focused)
+                                    {
+
+
+                                        <MudItem xs="5" sm="5" md="8" lg="8" xl="8" >
+                                            <MudCard style="height: 25vw; width:25vw; background: #A770EF;  /* fallback for old browsers */
+background: -webkit-linear-gradient(to right, #FDB99B, #CF8BF3, #A770EF);  /* Chrome 10-25, Safari 5.1-6 */
+background: linear-gradient(to right, #FDB99B, #CF8BF3, #A770EF); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+            ">
+                                                <MudCardHeader>
+                                                    <CardHeaderContent>
+                                                        <MudText Typo="Typo.body1">Product Id : @user.UserID </MudText>
+                                                            <MudText Typo="Typo.body2" Typography="Typography.h6">Product Name : @user.ProductName</MudText>
+                                                        </CardHeaderContent>
+                                                        <CardHeaderActions>
+                                                            <MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Default" />
+                                                        </CardHeaderActions>
+
+                                                    </MudCardHeader>
+                                                    <MudCardContent>
+
+
+                                                        <MudText Typo="Typo.body2">Price : @user.Price</MudText>
+                                                        <MudText Typo="Typo.body2">Available Stock : @user.Stock</MudText>
+                                                        
+                                                    </MudCardContent>
+                                                   
+
+                                                    <MudCardContent Style="margin-top : 40px">
+                                                        <MudPaper Class="pa-4" Style="background: #A770EF;  /* fallback for old browsers */
+background: -webkit-linear-gradient(to left, #FDB99B, #CF8BF3, #A770EF);  /* Chrome 10-25, Safari 5.1-6 */
+background: linear-gradient(to left, #FDB99B, #CF8BF3, #A770EF); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+                                                ">
+
+                                                            <MudStack Spacing="2">
+                                                                <MudButton OnClick="OnExpandCollapseClick">@(_expanded ? "Remove Product" : "Add to cart ")</MudButton>
+                                                                <MudDivider />
+                                                                <MudCollapse Expanded="_expanded">
+                                                                    This Product is added to cart
+                                                                </MudCollapse>
+                                                            </MudStack>
+
+
+
+                                                        </MudPaper>
+
+                                                    </MudCardContent>
+
+
+                                                </MudCard>
+                                            </MudItem>
+                                    }
+                                </MudGrid>
+                            }
+                        }
+
+                    </MudItem>
+                </MudGrid>
+
+             </div>
+            <!-- Divide Screen into Two Parts -->
+
+
+
+
+        </MudGrid>
+
+    </MudDrawerContainer>
+</MudPaper>
+
+
+
+
+@code {
+    private List<MultipleFileUploadModel> savedImages;
+
+    [Parameter]
+    public int userID { get; set; }
+
+    private string firstName;
+    private string lastName;
+    private List<ProductServicesModel> Users;
+    private List<ProductServicesModel> focused; //chosen
+    private List<MultipleFileUploadModel> productInImages;
+    private List<MultipleFileUploadModel> images;
+    protected async override Task OnInitializedAsync()
+    {
+        Console.WriteLine($"UserID: {userID}");
+        await GetCategories();
+        await LoadSavedImages();
+        await LoadImages();
+        Users = await ProductServices.GetAllUser();
+        focused = new List<ProductServicesModel>();
+        productInImages = new List<MultipleFileUploadModel> ();
+
+
+    }
+    private async Task LoadImages()
+    {
+        images = await MultipleFileUploadServices.GetAllImages();
+        StateHasChanged();
+    }
+    private async Task LoadSavedImages()
+    {
+        savedImages = await MultipleFileUploadServices.GetAllImages();
+        StateHasChanged();
+    }
+
+    private void logOutUser(int UserID)
+    {
+        NavManager.NavigateTo("/");
+
+    }
+
+
+    public List<CategoryModel1> categories { get; set; }
+
+    public List<ProductServicesModel> ProductServicesModels { get; set; }
+
+    private async Task GetCategories()
+    {
+        categories = await CategoryDataServices1.GetAllUser();
+
+    }
+    private List<MultipleFileUploadModel> savedImages1;
+
+    private async Task LoadProductByCategory(CategoryModel1 category)
+    {
+        //ProductServicesModels = await ProductServices.GetProductsByCategory(category);
+
+        // focused = new List<ProductServicesModel>();
+        focused.Clear();
+        foreach(var product in Users)
+        {
+
+            // if (product.Category111 == category.FirstName && product.ImageFileName == category.ProductNameforImageInCategory)
+            // {
+            //     product.ImageFileName = savedImages.FirstOrDefault(image => image.ProductnameForImage == product.ProductName)?.FileName;
+            //     focused.Add(product);
+            // }
+            if (product.Category111 == category.FirstName )
+            {
+
+                focused.Add(product);
+            }
+
+        }
+    }
+    // private async Task LoadImageByProduct(ProductServicesModel products)
+    // {
+    //     productInImages.Clear();
+
+        
+    //     foreach (var image in images)
+    //     {
+    //         if (image.ProductnameForImage == products.ProductName)
+    //         {
+    //             productInImages.Add(image);
+    //         }
+    //     }
+    // }
+    private async Task LoadImageByProduct(ProductServicesModel products)
+    {
+        productInImages.Clear();
+
+        foreach (var image in images)
+        {
+            if (image.ProductnameForImage == products.ProductName)
+            {
+                productInImages.Add(image);
+            }
+        }
+
+        if (productInImages.Count > 0)
+        {
+            var imageDataUrl = $"data:image/png;base64,{Convert.ToBase64String(productInImages[0].ImageData)}";
+            NavManager.NavigateTo($"/productimage?ImageDataUrl={Uri.EscapeDataString(imageDataUrl)}");
+            
+        }
+        else
+        {
+            // No image found for the product
+            
+        }
+
+       
+    }
+    bool _expanded = false;
+
+    private void OnExpandCollapseClick()
+    {
+        _expanded = !_expanded;
+    }
+
+}
